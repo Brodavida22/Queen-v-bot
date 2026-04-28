@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  whatsapp-bot:
+    build: .
+    container_name: queen-whatsapp-bot
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - BOT_PREFIX=${BOT_PREFIX:-!}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - PORT=3000
+    volumes:
+      - ./sessions:/usr/src/app/sessions
+      - ./logs:/usr/src/app/logs
+      - ./config:/usr/src/app/config
+    ports:
+      - "3000:3000"
+    networks:
+      - bot-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  bot-network:
+    driver: bridge
+
+volumes:
+  sessions:
+  logs:
+  config:
